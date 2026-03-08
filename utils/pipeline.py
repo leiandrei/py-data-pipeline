@@ -6,7 +6,8 @@ import os
 
 class Pipeline:
 
-    def fetch_file_data(self, path_name: str) -> pd.DataFrame:
+    @staticmethod
+    def fetch_file_data(path_name: str) -> pd.DataFrame:
 
         ext: str = os.path.splitext(path_name)[1].lower()
 
@@ -29,8 +30,8 @@ class Pipeline:
         except FileNotFoundError:
             raise Exception(f'File path not found at {path_name}')
         
-
-    def fetch_sql_query(self, query: str, db_engine: str) -> pd.DataFrame:
+    @staticmethod
+    def fetch_sql_query(query: str, db_engine: str) -> pd.DataFrame:
 
        engine = create_engine(db_engine)
        queries = text(query)
@@ -46,12 +47,12 @@ class Pipeline:
            raise Exception(f'SQL Fetch Error: {e}')
 
     
-    def fetch_json_data(self, url_path: str) -> pd.DataFrame:
+    @staticmethod
+    def fetch_json_data(url_path: str) -> pd.DataFrame:
 
         url = url_path
 
         try:
-
             req = requests.get(url, timeout=10)
             req.raise_for_status()
             json_data = req.json()
@@ -68,10 +69,17 @@ class Pipeline:
         except Exception as e:
             raise Exception(f"JSON Error {e}")
         
-    def agg_cols():
-        pass
-        
-    def impute_nan(self, df: pd.DataFrame, col: str, impute_value: Any) -> pd.DataFrame:
+    @staticmethod
+    def data_aggregation(data: pd.DataFrame, group: list, agg_func: dict) -> pd.DataFrame:
+
+        aggregated_tbl = data.groupby(group).agg(agg_func).reset_index()
+
+        if aggregated_tbl.empty:
+            raise Exception("Aggregated table is empty.")
+        return aggregated_tbl
+
+    @staticmethod  
+    def impute_nan(df: pd.DataFrame, col: str, impute_value: Any) -> pd.DataFrame:
 
         try:
 
@@ -87,7 +95,8 @@ class Pipeline:
         except Exception as e:
             raise Exception(f"Unable to impute values: {e}")
 
-    def load_data(self, data: pd.DataFrame, filename: str) -> None:
+    @staticmethod
+    def load_data(data: pd.DataFrame, filename: str) -> None:
 
         ext: str = os.path.splitext(filename)[1].lower()
 
