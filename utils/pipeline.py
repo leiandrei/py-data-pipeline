@@ -6,6 +6,10 @@ import os
 
 class Pipeline:
 
+    """
+        Extracting Data
+    """
+
     @staticmethod
     def fetch_file_data(path_name: str) -> pd.DataFrame:
 
@@ -68,6 +72,18 @@ class Pipeline:
         
         except Exception as e:
             raise Exception(f"JSON Error {e}")
+    
+    """
+        Transforming the Data
+    """
+    
+    @staticmethod
+    def standardize_str_cols(df: pd.DataFrame, col: str, str_standardize: str) -> pd.DataFrame:
+        pass
+
+    @staticmethod
+    def normalize_num_cols(df: pd.DataFrame, col: str) -> pd.DataFrame:
+        pass
         
     @staticmethod
     def data_aggregation(data: pd.DataFrame, group: list, agg_func: dict) -> pd.DataFrame:
@@ -94,6 +110,10 @@ class Pipeline:
         
         except Exception as e:
             raise Exception(f"Unable to impute values: {e}")
+    
+    """
+        Loading the Data
+    """
 
     @staticmethod
     def load_data(data: pd.DataFrame, filename: str) -> None:
