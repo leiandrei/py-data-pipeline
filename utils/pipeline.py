@@ -9,7 +9,6 @@ class Pipeline:
     """
         Extracting Data
     """
-
     @staticmethod
     def fetch_file_data(path_name: str) -> pd.DataFrame:
 
@@ -76,14 +75,40 @@ class Pipeline:
     """
         Transforming the Data
     """
-    
+
     @staticmethod
-    def standardize_str_cols(df: pd.DataFrame, col: str, str_standardize: str) -> pd.DataFrame:
-        pass
+    def map_values(df: pd.DataFrame, col: str, val_map: dict) -> pd.DataFrame:
+
+        try:
+            df[col] = df[col].replace(val_map)
+
+            if df.empty:
+                raise ValueError("The DataFrame is empty")
+            return df
+        except Exception as e:
+            raise Exception(f"The values cannot be mapped")
+
+    @staticmethod
+    def standardize_str_cols(df: pd.DataFrame, col: str, case: str, val_map: dict) -> pd.DataFrame:
+        
+        try:
+            map_values(df, col, val_map)
+
+            if case == "upper":
+                df[col] = df[col].astype(str).strip().upper()
+            elif case == "lower":
+                df[col] = df[col].astype(str).strip().lower()
+            elif case == "title":
+                df[col] = df[col].astype(str).strip().title()
+            return df
+        
+        except Exception as e:
+            raise ValueError(f"")
 
     @staticmethod
     def normalize_num_cols(df: pd.DataFrame, col: str) -> pd.DataFrame:
         pass
+        
         
     @staticmethod
     def data_aggregation(data: pd.DataFrame, group: list, agg_func: dict) -> pd.DataFrame:
@@ -112,7 +137,7 @@ class Pipeline:
             raise Exception(f"Unable to impute values: {e}")
     
     """
-        Loading the Data
+        ---Loading the Data---
     """
 
     @staticmethod
