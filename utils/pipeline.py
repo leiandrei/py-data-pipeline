@@ -9,6 +9,7 @@ class Pipeline:
     """
         Extracting Data
     """
+
     @staticmethod
     def fetch_file_data(path_name: str) -> pd.DataFrame:
 
@@ -89,17 +90,22 @@ class Pipeline:
             raise Exception(f"The values cannot be mapped")
 
     @staticmethod
-    def standardize_str_cols(df: pd.DataFrame, col: str, case: str, val_map: dict) -> pd.DataFrame:
+    def standardize_str_cols(df: pd.DataFrame, col: str, case: str, val_map: dict | None = None) -> pd.DataFrame:
         
+        df = df.copy()
+
         try:
-            map_values(df, col, val_map)
 
             if case == "upper":
-                df[col] = df[col].astype(str).strip().upper()
+                df[col] = df[col].astype(str).str.strip().upper()
             elif case == "lower":
-                df[col] = df[col].astype(str).strip().lower()
+                df[col] = df[col].astype(str).str.strip().lower()
             elif case == "title":
-                df[col] = df[col].astype(str).strip().title()
+                df[col] = df[col].astype(str).str.strip().title()
+            
+            if val_map:
+                df = Pipeline.map_values(val_map)
+                
             return df
         
         except Exception as e:
