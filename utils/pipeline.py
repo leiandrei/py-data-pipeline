@@ -109,11 +109,24 @@ class Pipeline:
             return df
         
         except Exception as e:
-            raise ValueError(f"")
+            raise ValueError(f"The DataFrame cannot be standardized.")
 
     @staticmethod
-    def normalize_num_cols(df: pd.DataFrame, col: str) -> pd.DataFrame:
-        pass
+    def normalize_num_cols(df: pd.DataFrame, col: str, val_map: dict | None = None) -> pd.DataFrame:
+        
+        df = df.copy()
+
+        try:
+
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+            if val_map:
+                df = Pipeline.map_values(val_map)
+        
+        # still figuring out my logic on this one bru..
+
+        except Exception as e:
+            raise ValueError(f"")
         
         
     @staticmethod
