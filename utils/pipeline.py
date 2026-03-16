@@ -1,8 +1,11 @@
 from sqlalchemy import create_engine, text
+from utils.logger import log
 from typing import Any
 import requests
 import pandas as pd
 import os
+
+logger = log(__name__)
 
 class Pipeline:
 
@@ -29,8 +32,13 @@ class Pipeline:
             else:
                 raise Exception(f'Unsupported File Type')
             
-            return df
+            logger.info(f"Reading file {path_name}")
             
+            return df
+        
+        except pd.errors.EmptyDataError as e:
+            raise Exception(f'Empty Data: {e}')
+        
         except FileNotFoundError:
             raise Exception(f'File path not found at {path_name}')
         
@@ -40,12 +48,17 @@ class Pipeline:
        engine = create_engine(db_engine)
        queries = text(query)
 
+       logger.info("Executing SQL Query")
+
        try:
         with engine.connect() as conn:
             data = pd.read_sql_query(queries, conn)
             if data.empty:
                 raise Exception("SQL Query showed no results")
             return data
+    
+       except pd.errors.DatabaseError as e:
+           raise Exception(f"SQL Query Failed: {e}")
         
        except Exception as e:
            raise Exception(f'SQL Fetch Error: {e}')
@@ -55,6 +68,8 @@ class Pipeline:
     def fetch_json_data(url_path: str) -> pd.DataFrame:
 
         url = url_path
+
+        logger.info(f"Fetching API Data from: {url}")
 
         try:
             req = requests.get(url, timeout=10)
@@ -68,7 +83,10 @@ class Pipeline:
             return data
 
         except requests.exceptions.HTTPError as e:
-            raise Exception(f'URL Fetch Error: {e}')               
+            raise Exception(f'URL Fetch Error: {e}')        
+
+        except requests.exceptions.Timeout as e:
+            raise Exception(f"URL Request Timed Out: {e}")      
         
         except Exception as e:
             raise Exception(f"JSON Error {e}")
@@ -102,6 +120,8 @@ class Pipeline:
                 df[col] = df[col].astype(str).str.strip().lower()
             elif case == "title":
                 df[col] = df[col].astype(str).str.strip().title()
+            else:
+                raise ValueError("The case must be: upper, lower, or title")
             
             if val_map:
                 df = Pipeline.map_values(val_map)
@@ -173,6 +193,7 @@ class Pipeline:
             
             elif ext == ".json":
                 data.to_json(filename, orient='records')
+            
         
         except Exception as e:
             raise Exception(f"Unsuppprted File Type: {e}")
