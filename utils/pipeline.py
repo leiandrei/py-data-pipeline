@@ -1,14 +1,14 @@
-from sqlalchemy import create_engine, text
-from utils.logger import log
-from typing import Any
-import requests
-import pandas as pd
-import os
+    from sqlalchemy import create_engine, text
+    from utils.logger import log
+    from typing import Any
+    import requests
+    import pandas as pd
+    import os
 
 
-logger = log(__name__)
+    logger = log(__name__)
 
-class Pipeline:
+    class Pipeline:
 
     """
         Extracting Data
@@ -18,6 +18,16 @@ class Pipeline:
     def fetch_file_data(path_name: str) -> pd.DataFrame:
 
         ext: str = os.path.splitext(path_name)[1].lower()
+
+        """"
+        filenames: str = {
+            ".csv" : pd.read_csv(path_name),
+            (".xls", '.xlsx') : pd.read_excel(path_name),
+            ".json" : pd.read_json(path_name)
+        }
+
+        *planning to replace the if-else statements
+        """
 
         try:
             
@@ -46,34 +56,33 @@ class Pipeline:
     @staticmethod
     def fetch_sql_query(query: str, db_engine: str) -> pd.DataFrame:
 
-       engine = create_engine(db_engine)
-       queries = text(query)
+        engine = create_engine(db_engine)
+        queries = text(query)
 
-       logger.info("Executing SQL Query")
+        logger.info("Executing SQL Query")
 
-       try:
-        with engine.connect() as conn:
-            data = pd.read_sql_query(queries, conn)
-            if data.empty:
-                raise Exception("SQL Query showed no results")
-            return data
-    
-       except pd.errors.DatabaseError as e:
-           raise Exception(f"SQL Query Failed: {e}")
+        try:    
+
+            with engine.connect() as conn:
+                data = pd.read_sql_query(queries, conn)
+                if data.empty:
+                    raise Exception("SQL Query showed no results")
+                return data
+
+        except pd.errors.DatabaseError as e:
+            raise Exception(f"SQL Query Failed: {e}")
         
-       except Exception as e:
-           raise Exception(f'SQL Fetch Error: {e}')
+        except Exception as e:
+            raise Exception(f'SQL Fetch Error: {e}')
 
-    
+
     @staticmethod
     def fetch_json_data(url_path: str) -> pd.DataFrame:
 
-        url = url_path
-
-        logger.info(f"Fetching API Data from: {url}")
+        logger.info(f"Fetching API Data from: {url_path}")
 
         try:
-            req = requests.get(url, timeout=10)
+            req = requests.get(url_path, timeout=10)
             req.raise_for_status()
             json_data = req.json()
 
@@ -91,7 +100,7 @@ class Pipeline:
         
         except Exception as e:
             raise Exception(f"JSON Error {e}")
-    
+
     """
         Transforming the Data
     """
@@ -111,7 +120,21 @@ class Pipeline:
     @staticmethod
     def standardize_str_cols(df: pd.DataFrame, col: str, case: str, val_map: dict | None = None) -> pd.DataFrame:
         
-        df = df.copy()
+        df: pd.DataFrame = df.copy()
+
+        """
+        cases: str = {
+        
+            "upper" : lambda x, col: x[col].astype(str).str.strip().upper()
+            ...
+
+        }
+        
+        """
+
+
+
+
 
         try:
 
@@ -135,7 +158,7 @@ class Pipeline:
     @staticmethod
     def normalize_num_cols(df: pd.DataFrame, col: str, val_map: dict | None = None) -> pd.DataFrame:
         
-        df = df.copy()
+        df: pd.DataFrame = df.copy()
 
         try:
 
@@ -175,7 +198,7 @@ class Pipeline:
         
         except Exception as e:
             raise Exception(f"Unable to impute values: {e}")
-    
+
     """
         ---Loading the Data---
     """
