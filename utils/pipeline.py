@@ -132,10 +132,6 @@
         
         """
 
-
-
-
-
         try:
 
             if case == "upper":
