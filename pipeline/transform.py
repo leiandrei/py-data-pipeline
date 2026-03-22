@@ -15,6 +15,7 @@ def map_values(df: pd.DataFrame, col: str, val_map: Dict[Any, Any]) -> pd.DataFr
             raise ValueError(f"Column not found: {col}")
 
         df[col] = df[col].replace(val_map)
+        return df
         
     except Exception as e:
         raise ValueError(f"The values cannot be mapped in column '{col}': {e}") from e

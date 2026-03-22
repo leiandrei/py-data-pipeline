@@ -34,14 +34,14 @@ def fetch_file(path_name: str, **kwargs) -> pd.DataFrame:
         raise ValueError(f"Unsupported File Type: {ext}")
             
     except pd.errors.EmptyDataError as e:
-        raise ValueError(f"The File is Empty: {e}")
+        raise ValueError(f"The File is Empty: {e}") from e
     
     except pd.errors.ParserError as e:
-        raise ValueError(f"File Parsing Error Occurred: {e}")
+        raise ValueError(f"File Parsing Error Occurred: {e}") from e
 
 
 # fetches db engine and queries to return a 
-def query_db(eng: str, queries: str) -> pd.DataFrame
+def query_db(eng: str, queries: str) -> pd.DataFrame:
 
     engine = create_engine(eng)
     query = text(queries)
@@ -57,7 +57,7 @@ def query_db(eng: str, queries: str) -> pd.DataFrame
             return data
 
     except Exception as e:
-        raise Exception(f"Database Fetch Error: {e}")
+        raise Exception(f"Database Fetch Error: {e}") from e
 
 # fetches web data by scraping html tablesw
 def web_data(url: str) -> pd.DataFrame:
@@ -79,7 +79,7 @@ def web_data(url: str) -> pd.DataFrame:
         return tables
 
     except requests.exceptions.HTTPError as e:
-        raise ValueError(f"HTTP Error Occured: {e}")
+        raise ValueError(f"HTTP Error Occured: {e}") from e
 
 # fetches API
 def fetch_api(url: str, header: dict | None, params: dict | None) -> pd.DataFrame:
@@ -94,10 +94,10 @@ def fetch_api(url: str, header: dict | None, params: dict | None) -> pd.DataFram
         return pd.json_normalize(data)
 
     except requests.exceptions.HTTPError as e:
-        raise Exception(f"HTTP Error Occured: {e}")
+        raise Exception(f"HTTP Error Occured: {e}") from e
     
     except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"API Request Failed: {e}")
+        raise RuntimeError(f"API Request Failed: {e}") from e
 
 # checks db schema 
 def check_schema(eng: str, table: str): 
