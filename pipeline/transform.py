@@ -4,6 +4,7 @@ import pandas as pd
 
 logger = log(__name__)
 
+# map values to standardize string or numerical values
 def map_values(df: pd.DataFrame, col: str, val_map: Dict[Any, Any]) -> pd.DataFrame:
 
     try:
@@ -21,6 +22,7 @@ def map_values(df: pd.DataFrame, col: str, val_map: Dict[Any, Any]) -> pd.DataFr
         raise ValueError(f"The values cannot be mapped in column '{col}': {e}") from e
 
 
+# standardizes string values in a col
 def standardize_str(df: pd.DataFrame, col: str, case_type: str) -> pd.DataFrame:
 
     df = df.copy()
@@ -52,6 +54,8 @@ def standardize_str(df: pd.DataFrame, col: str, case_type: str) -> pd.DataFrame:
     except Exception as e:
         raise RuntimeError(f"Unexpected Transform Error: {e}") from e
 
+
+# casts data types onto cols
 def casting_dtypes(df: pd.DataFrame, col: str, dtype_map: Any) -> pd.DataFrame:
 
     try:
@@ -60,6 +64,7 @@ def casting_dtypes(df: pd.DataFrame, col: str, dtype_map: Any) -> pd.DataFrame:
         raise ValueError(f"Data Type Error: {e}")
 
 
+# normalizes numerical columns
 def normalize_col(df: pd.DataFrame, col: str) -> pd.Series:
 
     if col not in df.columns:
@@ -83,6 +88,8 @@ def normalize_col(df: pd.DataFrame, col: str) -> pd.Series:
     except Exception as e:
         raise RuntimeError(f"Failed to normalize column '{col}': {e}") from e
 
+
+# imputes nan values depending on impute func: mean, median, mode (categorical)
 def impute_col(df: pd.DataFrame, col: str, impute_val: Any) -> pd.DataFrame:
 
     if df.empty:
@@ -108,6 +115,7 @@ def impute_col(df: pd.DataFrame, col: str, impute_val: Any) -> pd.DataFrame:
     except Exception as e:
         raise RuntimeError(f"Failed to impute column {col}: {e}") from e
 
+# aggregates columns
 def aggregate_tbl(df: pd.DataFrame, columns: List[str], aggfunc: Dict[str, str]) -> pd.DataFrame:
 
     if df.empty:
@@ -128,8 +136,9 @@ def aggregate_tbl(df: pd.DataFrame, columns: List[str], aggfunc: Dict[str, str])
     except Exception as e:
         raise RuntimeError(f"Failed to aggregate columns {columns}: {e}") from e
 
+# merges tables from one another 
 def merge_tbl(
-        df: pd.DataFrame, tbl: str, left: str, right: str, how: str, on: str, suffixes: List[str]) -> pd.DataFrame:
+        df: pd.DataFrame, tbl: str, left: str | None, right: str | None, how: str, on: str, suffixes: List[str]) -> pd.DataFrame:
     
     joins = {"inner", "outer", "left", "right"}
 

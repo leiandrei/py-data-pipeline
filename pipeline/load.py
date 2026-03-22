@@ -1,22 +1,35 @@
+from sqlalchemy import create_engine
+from utils.logger import log
 import pandas as pd
-import os
 
-# just imported this from the old pipeline class, gon' refactor this later on
+logger = log(__name__)
 
-def load_data(data: pd.DataFrame, filename: str) -> None:
+# function to load a data file to a specific file ext and path
+def to_file(clean_data: pd.DataFrame, path_name: str, ext: str) -> None:
 
-    ext: str = os.path.splitext(filename)[1].lower()
+    paths: dict = {
+        "csv" : lambda: clean_data.to_csv(path_name, index=False),
+        "xls" : lambda: clean_data.to_excel(path_name, index=False),
+        "xlsx" : lambda: clean_data.to_excel(path_name, index=False),
+        "json" : lambda: clean_data.to_json(path_name, orient='records')
+    }
+    
+    if clean_data.empty:
+        raise ValueError("The DataFrame is Empty")  
+
+    if ext not in paths:
+        raise ValueError(f"Unsupported File Type: {e}. Supported Files: {set(paths.keys())}")
 
     try:
-        if ext == ".csv":
-            data.to_csv(filename, index=False)
         
-        elif ext in [".xls", ".xlsx"]:
-            data.to_excel(filename, index=False)
-        
-        elif ext == ".json":
-            data.to_json(filename, orient='records')
-        
+        paths[ext]()
+        logger.info(f"Data saved successfully to: '{path_name}'")
     
     except Exception as e:
-        raise Exception(f"Unsuppprted File Type: {e}")
+        raise RuntimeError(f"Failed to save file to path: '{path_name}': {e}") from e
+    
+def to_sql(clean_data: pd.DataFrame, tbl_name: str, eng: str) -> None:
+    pass
+        
+
+        
