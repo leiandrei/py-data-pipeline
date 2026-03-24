@@ -1,5 +1,6 @@
 from utils.logger import log
 from typing import Any, Dict, List
+import datetime as dt
 import pandas as pd
 
 logger = log(__name__)
@@ -21,6 +22,9 @@ def map_values(df: pd.DataFrame, col: str, val_map: Dict[Any, Any]) -> pd.DataFr
     except Exception as e:
         raise ValueError(f"The values cannot be mapped in column '{col}': {e}") from e
 
+# standardizes datetime values in a col
+def standardize_dt(df: pd.DataFrame) -> pd.DataFrame:
+    pass
 
 # standardizes string values in a col
 def standardize_str(df: pd.DataFrame, col: str, case_type: str) -> pd.DataFrame:

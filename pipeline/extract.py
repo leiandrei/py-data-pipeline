@@ -99,6 +99,10 @@ def fetch_api(url: str, header: dict | None, params: dict | None) -> pd.DataFram
     except requests.exceptions.RequestException as e:
         raise RuntimeError(f"API Request Failed: {e}") from e
 
+# checks overall data info (summary, null cols, duplicates)
+def describe_data(df: pd.DataFrame) -> pd.DataFrame:
+    pass
+
 # checks db schema 
 def check_schema(eng: str, table: str): 
 
