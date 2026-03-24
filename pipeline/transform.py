@@ -5,13 +5,16 @@ import pandas as pd
 
 logger = log(__name__)
 
+class DateTimeHandlingErr(Exception):
+    pass
+
 # map values to standardize string or numerical values
 def map_values(df: pd.DataFrame, col: str, val_map: Dict[Any, Any]) -> pd.DataFrame:
 
     try:
 
         if df.empty:
-            raise ValueError("The DataFrame is empty")
+            raise ValueError("The DataFrame is Empty.")
         
         if col not in df.columns:
             raise ValueError(f"Column not found: {col}")
@@ -23,11 +26,41 @@ def map_values(df: pd.DataFrame, col: str, val_map: Dict[Any, Any]) -> pd.DataFr
         raise ValueError(f"The values cannot be mapped in column '{col}': {e}") from e
 
 # standardizes datetime values in a col
-def standardize_dt(df: pd.DataFrame) -> pd.DataFrame:
-    pass
+def standardize_dt(df: pd.DataFrame, col: str, err: str, format: str) -> pd.DataFrame:
+
+    VALID_ERRS = {"errors", "raise", "ignore"}
+
+    if df.empty:
+        raise ValueError("The DataFrame is Empty.")
+    
+    if err not in VALID_ERRS:
+        raise ValueError(f"Invalid error parameter '{err}'. Must be one of: {VALID_ERRS}")
+    
+    if col not in df.columns:
+        raise ValueError(f"Column not found: {col}")
+
+
+    logger.info(f"Standardizing column {col} into {format} format.")
+
+    try:
+        pass
+
+        # base conversion here
+
+        # null report
+
+        # could be slicing specific parts or date normalization
+
+    except Exception as e:
+        # format inference
+        pass
+    except DateTimeHandlingErr as e:
+        pass
 
 # standardizes string values in a col
 def standardize_str(df: pd.DataFrame, col: str, case_type: str) -> pd.DataFrame:
+    
+    logger.info(f"Converting column '{col}' into '{case_type}' case type.")
 
     df = df.copy()
 
