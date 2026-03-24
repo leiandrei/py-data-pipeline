@@ -8,11 +8,14 @@ import pandas as pd
 import requests
 import os
 
+class QualityErr(Exception):
+    pass
+
 
 logger = log(__name__)
 
 # fetches from diff. file formats to a pandas df
-def fetch_file(path_name: str, **kwargs) -> pd.DataFrame:
+def fetch_file(path_name: str) -> pd.DataFrame:
     
     ext: str = os.path.splitext(path_name)[1].lower()
 
@@ -100,8 +103,32 @@ def fetch_api(url: str, header: dict | None, params: dict | None) -> pd.DataFram
         raise RuntimeError(f"API Request Failed: {e}") from e
 
 # checks overall data info (summary, null cols, duplicates)
-def describe_data(df: pd.DataFrame) -> pd.DataFrame:
-    pass
+def data_quality(df: pd.DataFrame) -> pd.Series:
+    
+    logger.info("Data Quality Check from the DataFrame")
+
+    if df.empty:
+        raise ValueError("The DataFrame is Empty.")
+
+    try:
+
+        quality = pd.Series({
+            "total_records" : len(df),
+            "duplicated_rows" : int(df.duplicated().sum()),
+            "missing_values" : int(df.isna().sum().to_dict())
+        })
+
+        return quality
+
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error during data inspection: {e}") from e
+
+    except ValueError as e:
+        raise RuntimeError(f"Invalid input: {e}") from e
+
+    except QualityErr as e:
+        raise RuntimeError(f"The DataFrame cannot be inspected: {e}") from e
+
 
 # checks db schema 
 def check_schema(eng: str, table: str): 
