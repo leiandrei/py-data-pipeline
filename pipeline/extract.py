@@ -2,15 +2,16 @@ from sqlalchemy.exc import NoSuchTableError, OperationalError
 from sqlalchemy import create_engine, text
 from sqlalchemy import MetaData, Table
 from bs4 import BeautifulSoup
+from typing import Dict, Tuple, Callable
 from utils.logger import log
 
 import pandas as pd
 import requests
 import os
 
+# exception class
 class QualityErr(Exception):
     pass
-
 
 logger = log(__name__)
 
@@ -19,22 +20,25 @@ def fetch_file(path_name: str) -> pd.DataFrame:
     
     ext: str = os.path.splitext(path_name)[1].lower()
 
+    if not os.path.exists(path_name):
+        raise FileNotFoundError(f"File not found: {path_name}")
+
     try:
     
-        filenames: dict = {
+        filenames: Dict[str, Callable] = {
             ".csv" : pd.read_csv,
-            (".xls", ".xlsx") : pd.read_excel,
+            ".xls" : pd.read_excel,
+            ".xlsx" : pd.read_excel,
             ".json" : pd.read_json
         }
 
         logger.info(f"Reading the file from: {path_name}")
 
-        for exts, reader, in filenames.items():
-            
-            if ext in exts:
-                return reader(path_name)
-            
-        raise ValueError(f"Unsupported File Type: {ext}")
+        reader = filenames.get(ext)
+
+        if reader is None:
+            raise ValueError(f"Unsupported File Type: {ext}")
+        return reader(path_name)
             
     except pd.errors.EmptyDataError as e:
         raise ValueError(f"The File is Empty: {e}") from e
@@ -61,6 +65,8 @@ def query_db(eng: str, queries: str) -> pd.DataFrame:
 
     except Exception as e:
         raise Exception(f"Database Fetch Error: {e}") from e
+    finally:
+        engine.dispose()
 
 # fetches web data by scraping html tablesw
 def web_data(url: str) -> pd.DataFrame:
@@ -69,7 +75,7 @@ def web_data(url: str) -> pd.DataFrame:
 
     try:
 
-        r = requests.get(url)
+        r = requests.get(url, timeout=10)
         r.raise_for_status()
 
         soup = BeautifulSoup(r.text, "html.parser")
@@ -79,7 +85,7 @@ def web_data(url: str) -> pd.DataFrame:
         if not tables:
             raise ValueError("No Tables Found on the Webpage.")
         
-        return tables
+        return tables[0]
 
     except requests.exceptions.HTTPError as e:
         raise ValueError(f"HTTP Error Occured: {e}") from e
@@ -93,7 +99,9 @@ def fetch_api(url: str, header: dict | None, params: dict | None) -> pd.DataFram
         response = requests.get(url, headers=header, params=params)
         response.raise_for_status()
 
-        data = response.json
+        logger.info(f"API Fetch Status: {response.status_code}")
+
+        data = response.json()
         return pd.json_normalize(data)
 
     except requests.exceptions.HTTPError as e:
@@ -115,23 +123,23 @@ def data_quality(df: pd.DataFrame) -> pd.Series:
         quality = pd.Series({
             "total_records" : len(df),
             "duplicated_rows" : int(df.duplicated().sum()),
-            "missing_values" : int(df.isna().sum().to_dict())
+            "missing_values" : df.isna().sum().to_dict()
         })
 
         return quality
-
-    except Exception as e:
-        raise RuntimeError(f"Unexpected error during data inspection: {e}") from e
 
     except ValueError as e:
         raise RuntimeError(f"Invalid input: {e}") from e
 
     except QualityErr as e:
         raise RuntimeError(f"The DataFrame cannot be inspected: {e}") from e
+    
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error during data inspection: {e}") from e
 
 
 # checks db schema 
-def check_schema(eng: str, table: str): 
+def check_schema(eng: str, table: str) -> Tuple:
 
     try:
 
@@ -147,3 +155,7 @@ def check_schema(eng: str, table: str):
     
     except OperationalError as e:
         raise Exception(f"Database Connection Error: {e}")
+    
+    finally:
+
+        engine.dispose()
