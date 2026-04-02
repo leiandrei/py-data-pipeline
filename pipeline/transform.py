@@ -95,8 +95,11 @@ def standardize_str(df: pd.DataFrame, col: str, case_type: str) -> pd.DataFrame:
 # casts data types onto cols
 def casting_dtypes(df: pd.DataFrame, col: str, dtype_map: Any) -> pd.DataFrame:
 
+    logger.info(f"Casting Data Types for col '{col}'")
+
     try:
-        return df.astype(dtype_map)
+        df[col] = df[col].astype(dtype_map)
+        return df
     except pd.errors.DtypeWarning as e:
         raise ValueError(f"Data Type Error: {e}")
 
@@ -113,12 +116,12 @@ def normalize_col(df: pd.DataFrame, col: str) -> pd.Series:
     try:
         
         minimum = df[col].min()
-        maximium = df[col].max()
+        maximum = df[col].max()
 
-        if maximium == maximium:
+        if maximum == minimum:
             raise ValueError(f"Column '{col}' has no variance.")
 
-        df[col] = (df[col] - minimum) / (minimum - maximium)
+        df[col] = (df[col] - minimum) / (maximum - minimum)
 
         return df
     
@@ -186,7 +189,7 @@ def merge_tbl(
     if left not in df.columns:
         raise KeyError(f"Left key '{left}' does not exist in the DataFrame.")
     
-    if right not in df.columns:
+    if right not in tbl.columns:
         raise KeyError(f"Right key '{right}' does not exist in the DataFrame.")
     
     if how not in joins:
@@ -205,7 +208,7 @@ def merge_tbl(
             suffixes=suffixes
         )
 
-        return merge_tbl
+        return merged_tbl
 
     except Exception as e:
         raise RuntimeError(f"Failed to merge rables: {e}") from e
