@@ -26,9 +26,9 @@ def map_values(df: pd.DataFrame, col: str, val_map: Dict[Any, Any]) -> pd.DataFr
         raise ValueError(f"The values cannot be mapped in column '{col}': {e}") from e
 
 # standardizes datetime values in a col
-def standardize_dt(df: pd.DataFrame, col: str, err: str, format: str) -> pd.DataFrame:
+def standardize_dt(df: pd.DataFrame, col: str, err: str, dt_format: str) -> pd.DataFrame:
 
-    VALID_ERRS = {"errors", "raise", "ignore"}
+    VALID_ERRS = {"coerce", "raise", "ignore"}
 
     if df.empty:
         raise ValueError("The DataFrame is Empty.")
@@ -43,19 +43,17 @@ def standardize_dt(df: pd.DataFrame, col: str, err: str, format: str) -> pd.Data
     logger.info(f"Standardizing column {col} into {format} format.")
 
     try:
-        pass
 
-        # base conversion here
+        df[col] = pd.to_datetime(df[col], errors=err, format=dt_format)
 
-        # null report
-
-        # could be slicing specific parts or date normalization
+        return df
+    
+    except DateTimeHandlingErr as e:
+        raise RuntimeError("Unexpected Datetime Handling occured.")    
 
     except Exception as e:
-        # format inference
-        pass
-    except DateTimeHandlingErr as e:
-        pass
+        raise RuntimeError(f"Column '{col}' cannot be standardized into a datetime value: {e}") from e
+   
 
 # standardizes string values in a col
 def standardize_str(df: pd.DataFrame, col: str, case_type: str) -> pd.DataFrame:
@@ -102,13 +100,47 @@ def casting_dtypes(df: pd.DataFrame, col: str, dtype_map: Any) -> pd.DataFrame:
         return df
     except pd.errors.DtypeWarning as e:
         raise ValueError(f"Data Type Error: {e}")
+    
+def rename_cols(df: pd.DataFrame, headers: List[str]) -> pd.DataFrame:
+
+    if df.empty:
+        raise ValueError("The DataFrame is Empty")
+    
+    if len(df.columns) != len(headers):
+        raise ValueError(f"The values from the DataFrame expects {len(df.columns)} but headers has {len(headers)}")
+    
+    if not all(isinstance(h, str) for h in headers):
+        raise TypeError("All headers must be strings.")
+    
+    # i need more input validation in this.
+
+    logger.info("Renaming DataFrame columns")
+
+    try:
+        df.columns = headers
+        return df, df.columns
+
+    except Exception as e:
+        raise RuntimeError(f"Columns of the DataFrame cannot be renamed: {e}") from e
+
+def drop_duplicates(df: pd.DataFrame, col: str | List[str]) -> pd.DataFrame:
+    
+    if df.empty:
+        raise ValueError("The DataFrame is Empty.")
+
+    if col not in df.columns:
+        raise KeyError(f"Column not found: {col}")
+
+    logger.info(f"Dropping duplicates from column '{col}'")
+
+    return df.drop_duplicates(subset=col).reset_index(drop=True)
 
 
 # normalizes numerical columns
 def normalize_col(df: pd.DataFrame, col: str) -> pd.Series:
 
     if col not in df.columns:
-            raise KeyError(f"Column not found: {col}")
+        raise KeyError(f"Column not found: {col}")
         
     if not pd.api.types.is_numeric_dtype(df[col]):
         raise TypeError(f"Column '{col}' must be numeric.")
@@ -211,7 +243,7 @@ def merge_tbl(
         return merged_tbl
 
     except Exception as e:
-        raise RuntimeError(f"Failed to merge rables: {e}") from e
+        raise RuntimeError(f"Failed to merge tables: {e}") from e
 
 
 
