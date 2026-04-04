@@ -4,15 +4,9 @@ import pandas as pd
 logger = log(__name__)
 
 # still figuring out what to put in here
-
-"""
-    describe_data():
-    checks overall data info if it contains any:
-        - null/duplicate values
-        - unstandardize strings/values
-
-"""
 # same logic from the extract.py but it should return a clean data check
+
+# planning to put test cases here
 def data_quality(clean_df: pd.DataFrame) -> pd.Series:
     
     logger.info("Data Quality Check from the DataFrame")
